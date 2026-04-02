@@ -1,68 +1,78 @@
+from parser import extract_json
+from memory import add_memory, search_memory
 from langchain_community.llms import Ollama
 from config import MODEL
 from tools import run_bash, read_file
-from memory import load_memory, add_memory
 import json
 
 llm = Ollama(model=MODEL)
 
-def planner(user_input, memory):
+def planner(user_input):
+    memory_context = search_memory(user_input)
+
     prompt = f"""
-Você é um assistente que decide ações.
+        Você é um sistema de decisão de ações.
 
-Memória:
-{memory}
+        REGRAS OBRIGATÓRIAS:
+        - Você NÃO responde o usuário
+        - Você APENAS decide uma ação
+        - Você DEVE usar JSON válido
+        - Se a pergunta envolver sistema, arquivos ou comandos → use "bash"
 
-Pergunta:
-{user_input}
+        Memória:
+        {memory_context}
 
-Responda em JSON:
-{{
-  "action": "bash | read_file | none",
-  "input": "string"
-}}
-"""
-    return llm.invoke(prompt)
+        Entrada:
+        {user_input}
 
-def executor(action, action_input):
+        Responda SOMENTE com JSON:
+
+        {{
+        "action": "bash | read_file | none",
+        "input": "comando ou argumento"
+        }}
+    """
+    raw = llm.invoke(prompt)
+    return extract_json(raw)
+
+def executor(plan):
+    action = plan.get("action")
+    action_input = plan.get("input", "")
+
     if action == "bash":
         return run_bash(action_input)
+
     elif action == "read_file":
         return read_file(action_input)
+
     return "Nenhuma ação executada"
 
 def responder(user_input, result):
     prompt = f"""
-Usuário: {user_input}
-Resultado da ação: {result}
+        Usuário: {user_input}
 
-Responda de forma clara.
-"""
+        Resultado da ação:
+        {result}
+
+        Responda de forma clara e útil para o usuário.
+    """
     return llm.invoke(prompt)
 
 def run():
     while True:
         user_input = input(">> ")
 
-        memory = load_memory()
+        plan = planner(user_input)
 
-        plan_raw = planner(user_input, memory)
-
-        try:
-            plan = json.loads(plan_raw)
-        except:
-            print("Erro no planner:", plan_raw)
-            continue
-
-        result = executor(plan["action"], plan["input"])
+        result = executor(plan)
 
         response = responder(user_input, result)
 
-        print(response)
+        print("\n🤖", response)
 
         add_memory({
             "input": user_input,
-            "action": plan,
+            "plan": plan,
             "result": result
         })
 
