@@ -1,0 +1,26 @@
+[
+  {
+    "input": "Ol\u00e1. Voc\u00ea est\u00e1 a\u00ed?",
+    "action": {
+      "action": "echo | Hello there!",
+      "input": "string"
+    },
+    "result": "Nenhuma a\u00e7\u00e3o executada"
+  },
+  {
+    "input": "Quais as suas especifica\u00e7\u00f5es t\u00e9cnicas?",
+    "action": {
+      "action": "bash | read_file | none",
+      "input": "Especifica\u00e7\u00f5es_T\u00e9cnicas.txt"
+    },
+    "result": "Nenhuma a\u00e7\u00e3o executada"
+  },
+  {
+    "input": "Voc\u00ea consegue listar os arquivos do diret\u00f3rio atual?",
+    "action": {
+      "action": "bash | read_file | none",
+      "input": "ls"
+    },
+    "result": "Nenhuma a\u00e7\u00e3o executada"
+  }
+]

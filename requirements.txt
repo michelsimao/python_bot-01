@@ -1,0 +1,5 @@
+langchain==0.2.16
+langchain-community==0.2.16
+langgraph==0.2.34
+ollama==0.3.3
+python-dotenv==1.0.1
